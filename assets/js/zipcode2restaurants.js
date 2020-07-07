@@ -101,7 +101,6 @@ displayMoreRestaurants.addEventListener("click", function(){
 });
 
 
-
 //start of main API to fetch information
 var getzipcodelocations = function (zipcode) {
     var apiUrl = "https://www.zipcodeapi.com/rest/Kw3XyO3XjHqeVTrhowyUEZnz9nUaRX5lyiHa59PozklLlOy8NPjDqAlF2MVdmyEd/info.json/" + zipcode + "/degrees";
@@ -113,64 +112,51 @@ var getzipcodelocations = function (zipcode) {
             displaylocations(data, zipcode);
             var ziptolat = data.lat
             var ziptolng = data.lng
-            console.log (ziptolat)
-            console.log (ziptolng)
-                .then(function(ziptolat, ziptolng){
-                    fetch(`https://developers.zomato.com/api/v2.1/cuisines?lat=${ziptolat}&lon=${ziptolng}`,
+            fetch("https://developers.zomato.com/api/v2.1/cuisines?lat=" + ziptolat + "&lon=" + ziptolng,
+            {headers: {
+                "user-key": userKeyZomato,
+                "content-type": "application/json"
+            }})
+            .then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    alert("Please enter a valid zip code.");
+                }
+            })
+            .then(function(response) {
+                console.log("res: 131", response)
+                for (var i = 0; i < response.cuisines.length; i++) {
+                if (response.cuisines[i].cuisine.cuisine_name == userCuisine) {
+                    console.log(response.cuisines[i].cuisine.cuisine_id);
+                    var userCuisineID = response.cuisines[i].cuisine.cuisine_id
+            
+                    fetch("https://developers.zomato.com/api/v2.1/search?entity_type=city&lat=" + ziptolat + "&lon=" + ziptolng + "&cuisines=${userCuisineID}&sort=real_distance",
                     {headers: {
-                      "user-key": userKeyZomato,
-                      "content-type": "application/json"
+                    "user-key": userKeyZomato,
+                    "content-type": "application/json"
                     }})
                     .then(function(response) {
-                      if (response.ok) {
-                          return response.json();
-                      } else {
-                          alert("Please enter a valid zip code.");
-                      }
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        alert("Please enter a valid zip code.");
+                    }
                     })
                     .then(function(response) {
-                      console.log("res: 131", response)
-                      for (var i = 0; i < response.cuisines.length; i++) {
-                        if (response.cuisines[i].cuisine.cuisine_name == userCuisine) {
-                          console.log(response.cuisines[i].cuisine.cuisine_id);
-                          var userCuisineID = response.cuisines[i].cuisine.cuisine_id
-                  
-                          fetch(`https://developers.zomato.com/api/v2.1/search?entity_type=city&lat=${zipToLat}&lon=${zipToLon}&cuisines=${userCuisineID}&sort=real_distance`,
-                          {headers: {
-                            "user-key": userKeyZomato,
-                            "content-type": "application/json"
-                          }})
-                          .then(function(response) {
-                            if (response.ok) {
-                                return response.json();
-                            } else {
-                                alert("Please enter a valid zip code.");
-                            }
-                          })
-                          .then(function(response) {
-                            var index = 0; 
-                            var restaurants = response.restaurants;
-                            window.localStorage.setItem('restaurants', JSON.stringify(restaurants));
-                            
-                            index = make3Cards(restaurants, index);
-                  
-                            console.log("index", index)
-                            window.localStorage.setItem('index', index);
-                            
-                          });
-                        };
-                      };
+                    var index = 0; 
+                    var restaurants = response.restaurants;
+                    window.localStorage.setItem('restaurants', JSON.stringify(restaurants));
+                    
+                    index = make3Cards(restaurants, index);
+            
+                    console.log("index", index)
+                    window.localStorage.setItem('index', index);
+                    
                     });
-
-
-
-
-
-
-
-                })
-
-
+                };
+                };
+            });
           });
         } else {
           alert("Error " + answer.statusText);
@@ -181,6 +167,14 @@ var getzipcodelocations = function (zipcode) {
         alert("Unable to connect to Zipcode API server");
       });
    };
+
+
+
+
+
+
+
+
 
 
 
